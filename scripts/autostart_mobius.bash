@@ -34,9 +34,12 @@ export ROS_IP=192.168.50.195
 
 echo "running tmux..."
 
-/usr/bin/tmux new -d -s roscore roscore
+/usr/bin/tmux new -d -s roscore
+
+/usr/bin/tmux send-keys "roscore" C-m
+
 /usr/bin/tmux new -d -s project11
 
-/usr/bin/tmux send-keys "rosrun rosmon rosmon --name=rosmon_molab molab_hardware mobile_lab.launch logDirectory:=${LOGDIR}
+/usr/bin/tmux send-keys "rosrun rosmon rosmon --name=rosmon_molab molab_hardware mobile_lab.launch logDirectory:=${LOGDIR}" C-m
 
 } >> "${LOG_FILE}" 2>&1
