@@ -11,6 +11,15 @@
 
   <license>BSD</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>axis_camera</depend>
+  <depend>marine_ais_tools</depend>
+  <depend>mru_transform</depend>
+  <depend>nmea_navsat_driver</depend>
+  <depend>project11</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
   
 </package>
