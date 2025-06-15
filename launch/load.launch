@@ -1,6 +1,0 @@
-<launch>
-  <arg name="namespace" default="molab"/>
-  <arg name="model" default="$(find molab_description)/urdf/molab_mesh.xacro"/>
-
-  <param name="$(arg namespace)/robot_description" command="$(find xacro)/xacro $(arg model) namespace:=$(arg namespace)"/>
-</launch>

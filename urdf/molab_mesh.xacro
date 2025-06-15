@@ -8,7 +8,7 @@
         <geometry>
             <mesh filename="package://molab_description/models/meshes/Mobile Lab 3D Model.dae"/>
         </geometry>
-        <origin rpy="0 0 -1.57075" xyz="0 0 0"/>
+        <origin rpy="0 0 -1.57075" xyz="-6.75 1.22 -2.93"/>
     </visual>
   </link>
 
@@ -24,7 +24,24 @@
   <joint name="${namespace}/base_to_ais" type="fixed">
       <parent link="${namespace}/base_link"/>
       <child link="${namespace}/ais"/>
-      <origin rpy="0 0 0" xyz="5.75 -0.25 2.9" />
+      <origin rpy="0 0 0" xyz="-0.5 1.0 -.01" />
   </joint>
+
+
+  <link name="${namespace}/radar">
+    <visual>
+      <geometry>
+        <cylinder length="0.2" radius="0.3"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.125"/>
+    </visual>
+  </link>
+
+  <joint name="${namespace}/base_to_radar" type="fixed">
+      <parent link="${namespace}/base_link"/>
+      <child link="${namespace}/radar"/>
+      <origin rpy="0 0 0" xyz="0.0 1.22 0.2" />
+  </joint>
+
 
 </robot>
