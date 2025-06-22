@@ -2,6 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import GroupAction
 from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -21,85 +22,203 @@ def generate_launch_description():
         "namespace", default_value=TextSubstitution(text="molab")
     )
 
+    heading = LaunchConfiguration('heading')
+
+    heading_arg = DeclareLaunchArgument('heading', default_value=TextSubstitution(text="0.0"))
+
+    enable_bridge = LaunchConfiguration('enable_bridge')
+    enable_bridge_arg = DeclareLaunchArgument(
+        "enable_bridge", default_value="false"
+    )
+
+
     return LaunchDescription([
         namespace_arg,
-            GroupAction(
-                actions=[
-                    PushRosNamespace(namespace),
-                    SetParametersFromFile(
-                        filename=PathJoinSubstitution([
-                            FindPackageShare('molab_hardware'),
-                            'config',
-                            'molab.yaml'
-                        ])                
-                    ),
-                    GroupAction(
-                        actions=[
-                            PushRosNamespace('sensors'),
-                            GroupAction(
-                                actions=[
-                                    PushRosNamespace('ais'),
-                                    Node(
-                                        package = 'marine_ais_tools',
-                                        executable = 'nmea_relay',
-                                        name = 'nmea_relay'
-                                    ),
-                                    Node(
-                                        package = 'marine_ais_tools',
-                                        executable = 'ais_parser',
-                                        name = 'parser'
-                                    ),
-                                    Node(
-                                        package = 'marine_ais_tools',
-                                        executable = 'ais_contact_tracker',
-                                        name = 'tracker'
-                                    ),
-                                    Node(
-                                        package = 'nmea_navsat_driver',
-                                        executable = 'nmea_topic_driver',
-                                        name = 'navsat',
-                                        remappings= [
-                                            ('nmea_sentence', 'nmea')
-                                        ]
-                                    ),
-                                    # todo: add heading sender if needed
-                                ]
-                            ),
-                            IncludeLaunchDescription(
-                                PythonLaunchDescriptionSource(
-                                    PathJoinSubstitution([
-                                        FindPackageShare('molab_hardware'),
-                                        'launch',
-                                        'johnny5_launch.py'
-                                    ])
+        heading_arg,
+        enable_bridge_arg,
+        GroupAction(
+            actions=[
+                PushRosNamespace(namespace),
+                SetParametersFromFile(
+                    filename=PathJoinSubstitution([
+                        FindPackageShare('molab_hardware'),
+                        'config',
+                        'molab.yaml'
+                    ])                
+                ),
+                GroupAction(
+                    actions=[
+                        PushRosNamespace('sensors'),
+                        GroupAction(
+                            actions=[
+                                PushRosNamespace('ais'),
+                                Node(
+                                    package = 'marine_ais_tools',
+                                    executable = 'nmea_relay',
+                                    name = 'ais_nmea_relay'
                                 ),
-                                launch_arguments={
-                                    'namespace': 'johnny5'
-                                }.items()
-                            ),
-                        ]
-
-                    ),
-                    # todo add optional udp bridge
-                    Node(
-                        package='mru_transform',
-                        executable='mru_transform_node',
-                        name='mru_transform',
-                    ),
-                    IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(
-                            PathJoinSubstitution([
-                                FindPackageShare('project11'),
-                                'launch',
-                                'platform_sender_launch.py'])
+                                Node(
+                                    package = 'marine_ais_tools',
+                                    executable = 'ais_parser',
+                                    name = 'parser'
+                                ),
+                                Node(
+                                    package = 'marine_ais_tools',
+                                    executable = 'ais_contact_tracker',
+                                    name = 'tracker',
+                                    respawn = True,
+                                    respawn_delay = 2.0
+                                ),
+                                Node(
+                                    package = 'nmea_navsat_driver',
+                                    executable = 'nmea_topic_driver',
+                                    name = 'ais_navsat',
+                                    remappings= [
+                                        ('nmea_sentence', 'nmea')
+                                    ]
+                                ),
+                                # Node(
+                                #     package='molab_hardware',
+                                #     executable='heading_sender.py',
+                                #     name='heading_sender',
+                                #     parameters=[{
+                                #         'heading': heading
+                                #     }]
+                                # )
+                            ]
                         ),
-                        launch_arguments={
-                            'name': namespace
-                        }.items()
-                    ),
+                        GroupAction(
+                            actions=[
+                                PushRosNamespace('gps'),
+                                Node(
+                                    package = 'marine_ais_tools',
+                                    executable = 'nmea_relay',
+                                    name = 'gps_nmea_relay'
+                                ),
+                                Node(
+                                    package = 'nmea_navsat_driver',
+                                    executable = 'nmea_topic_driver',
+                                    name = 'gps_navsat',
+                                    remappings= [
+                                        ('nmea_sentence', 'nmea')
+                                    ]
+                                ),
+                                Node(
+                                    package='molab_hardware',
+                                    executable='heading_sender.py',
+                                    name='heading_sender',
+                                    parameters=[{
+                                        'heading': heading
+                                    }]
+                                )
+                            ]
+                        ),
+                        GroupAction(
+                            actions=[
+                                PushRosNamespace('radar'),
+                                Node(
+                                    package='simrad_halo_radar',
+                                    executable = 'simrad_halo_radar',
+                                    name = 'radar'
+                                ),
+                                GroupAction(
+                                    actions=[
+                                        PushRosNamespace('halo_a'),
+                                        # Node(
+                                        #     package='echoflow',
+                                        #     executable = 'radar_grid_map',
+                                        #     name = 'echoflow_a',
+                                        #     parameters=[{
+                                        #         'map.frame_id': 'molab/map',
+                                        #         'map.resolution': 2.0,
+                                        #         'map.width': 2000.0,
+                                        #         'map.length': 2000.0,
+                                        #         'filter.near_clutter_range': 1.5,
+                                        #     }]
+                                        # ),
+                                        Node(
+                                            package='echoflow',
+                                            executable='flow_tracker',
+                                            name= 'flow_tracker',
+                                            # parameters=[{
+                                            #     'map.width': 2000.0,
+                                            #     'map.length': 2000.0,
+                                            #     'particle_filter_statistics.frame_id': 'molab/map',
+                                            # }]
+                                        ),
+                                        Node(
+                                            package='rviz2',
+                                            executable='rviz2',
+                                            name='rviz_echoflow',
+                                            arguments = [
+                                                '-d',
+                                                PathJoinSubstitution([
+                                                    FindPackageShare('molab_hardware'),
+                                                    'config',
+                                                    'echoflow.rviz'
+                                                ])
 
-                ]
-            )
+                                            ]
+                                        )
+                                    ]
+                                )
+                            ]
+                        ),
+                        IncludeLaunchDescription(
+                            PythonLaunchDescriptionSource(
+                                PathJoinSubstitution([
+                                    FindPackageShare('molab_hardware'),
+                                    'launch',
+                                    'johnny5_launch.py'
+                                ])
+                            ),
+                            launch_arguments={
+                                'namespace': 'johnny5'
+                            }.items()
+                        ),
+                    ]
+
+                ),
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([
+                            FindPackageShare('udp_bridge'),
+                        'launch',
+                        'udp_bridge_launch.py'
+                    ])
+                    ),
+                    condition = IfCondition(enable_bridge)
+                ),
+                Node(
+                    package='mru_transform',
+                    executable='mru_transform_node',
+                    name='mru_transform',
+                ),
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([
+                            FindPackageShare('project11'),
+                            'launch',
+                            'platform_sender_launch.py'])
+                    ),
+                    launch_arguments={
+                        'name': namespace
+                    }.items()
+                ),
+
+            ]
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([
+                    FindPackageShare('molab_description'),
+                    'launch',
+                    'publish_state_launch.py'])
+            ),
+            launch_arguments={
+                'namespace': namespace
+            }.items()
+        ),
     ])
 
 

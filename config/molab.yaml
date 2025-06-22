@@ -1,21 +1,31 @@
-/**/ais/nmea_relay:
+/**/ais/ais_nmea_relay:
   ros__parameters:
     input_type: udp
     input_port: 8010
     frame_id: molab/ais
 
+/**/gps/gps_nmea_relay:
+  ros__parameters:
+    input_type: udp
+    input_port: 8011
+    frame_id: molab/gps
 
 /**/platform_sender:
   ros__parameters:
     robot_description: molab/robot_description
     width: 2.2
     length: 10.0
-    reference_x: 0.2
-    reference_y: 8.0
+    reference_x: 0.0
+    reference_y: 0.0
     nav:
       source_names:
-      - ais
+      - gps
       sources:
+        gps:
+          topics:
+            position: /molab/sensors/gps/fix
+            orientation: /molab/sensors/gps/heading
+            velocity: /molab/sensors/gps/vel
         ais:
           topics:
             position: /molab/sensors/ais/fix
@@ -25,10 +35,56 @@
 /**/mru_transform:
   ros__parameters:
     sensors:
+      gps:
+          topics:
+            position: sensors/gps/fix
+            orientation: sensors/gps/heading
+            velocity: sensors/gps/vel
       ais:
         topics: { position: 'sensors/ais/fix', orientation: 'sensors/ais/heading', velocity: 'sensors/ais/vel'}
     sensor_names:
+    - gps
     - ais
     base_frame: molab/base_link
     map_frame: molab/map
     odom_frame: molab/odom
+
+/**/radar:
+  ros__parameters:
+    halo_a:
+      frame_id: molab/radar
+    halo_b:
+      frame_id: molab/radar
+
+/**/flow_tracker:
+  ros__parameters:
+    particle_filter:
+      density_feedback_factor: 0.8
+      initial_max_speed: 20.0
+      maximum_target_size: 200.0
+      noise_std_position: 0.1
+      noise_std_speed: 0.2
+      noise_std_yaw: 0.05
+      noise_std_yaw_rate: 0.0
+      num_particles: 100000
+      observation_sigma: 50.0
+      seed_fraction: 0.001
+      update_interval: 0.2
+      weight_decay_half_life: 3.0
+    particle_filter_statistics:
+      frame_id: molab/map
+      pub_interval: 0.5                # seconds
+      resolution: 25.0                 # meters/cell
+    map:
+      frame_id: molab/map
+      length: 1700.0                   # meters
+      pub_interval: 0.2                # seconds
+      resolution: 5.0                 # meters/cell
+      width: 1700.0                    # meters
+    max_queue_size: 1000
+
+
+/**/udp_bridge:
+  ros__parameters:
+    name: molab
+    maximum_packet_size: 1000
