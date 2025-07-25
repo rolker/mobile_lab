@@ -124,6 +124,16 @@ def generate_launch_description():
                                 GroupAction(
                                     actions=[
                                         PushRosNamespace('halo_a'),
+                                        Node(
+                                            package='marine_radar_tracker',
+                                            executable='marine_radar_tracker',
+                                            name='marine_radar_tracker',
+                                            parameters=[{
+                                                'map_frame': 'molab/map'}],
+                                            remappings=[('radar_data', 'data')],
+                                            respawn=True,
+                                            respawn_delay=2.0
+                                        )
                                         # Node(
                                         #     package='echoflow',
                                         #     executable = 'radar_grid_map',
@@ -136,30 +146,30 @@ def generate_launch_description():
                                         #         'filter.near_clutter_range': 1.5,
                                         #     }]
                                         # ),
-                                        Node(
-                                            package='echoflow',
-                                            executable='flow_tracker',
-                                            name= 'flow_tracker',
-                                            # parameters=[{
-                                            #     'map.width': 2000.0,
-                                            #     'map.length': 2000.0,
-                                            #     'particle_filter_statistics.frame_id': 'molab/map',
-                                            # }]
-                                        ),
-                                        Node(
-                                            package='rviz2',
-                                            executable='rviz2',
-                                            name='rviz_echoflow',
-                                            arguments = [
-                                                '-d',
-                                                PathJoinSubstitution([
-                                                    FindPackageShare('molab_hardware'),
-                                                    'config',
-                                                    'echoflow.rviz'
-                                                ])
+                                        # Node(
+                                        #     package='echoflow',
+                                        #     executable='flow_tracker',
+                                        #     name= 'flow_tracker',
+                                        #     # parameters=[{
+                                        #     #     'map.width': 2000.0,
+                                        #     #     'map.length': 2000.0,
+                                        #     #     'particle_filter_statistics.frame_id': 'molab/map',
+                                        #     # }]
+                                        # ),
+                                        # Node(
+                                        #     package='rviz2',
+                                        #     executable='rviz2',
+                                        #     name='rviz_echoflow',
+                                        #     arguments = [
+                                        #         '-d',
+                                        #         PathJoinSubstitution([
+                                        #             FindPackageShare('molab_hardware'),
+                                        #             'config',
+                                        #             'echoflow.rviz'
+                                        #         ])
 
-                                            ]
-                                        )
+                                        #     ]
+                                        # )
                                     ]
                                 )
                             ]
