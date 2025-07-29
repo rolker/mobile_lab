@@ -26,6 +26,10 @@ def generate_launch_description():
 
     heading_arg = DeclareLaunchArgument('heading', default_value=TextSubstitution(text="0.0"))
 
+    latitude_arg = DeclareLaunchArgument('latitude', default_value=TextSubstitution(text="43.07202674"))
+    longitude_arg = DeclareLaunchArgument('longitude', default_value=TextSubstitution(text="-70.71174829"))
+    altitude_arg = DeclareLaunchArgument('altitude', default_value=TextSubstitution(text="-19.3"))
+
     enable_bridge = LaunchConfiguration('enable_bridge')
     enable_bridge_arg = DeclareLaunchArgument(
         "enable_bridge", default_value="false"
@@ -35,6 +39,9 @@ def generate_launch_description():
     return LaunchDescription([
         namespace_arg,
         heading_arg,
+        latitude_arg,
+        longitude_arg,
+        altitude_arg,
         enable_bridge_arg,
         GroupAction(
             actions=[
@@ -95,22 +102,35 @@ def generate_launch_description():
                                     executable = 'nmea_relay',
                                     name = 'gps_nmea_relay'
                                 ),
-                                Node(
-                                    package = 'nmea_navsat_driver',
-                                    executable = 'nmea_topic_driver',
-                                    name = 'gps_navsat',
-                                    remappings= [
-                                        ('nmea_sentence', 'nmea')
-                                    ]
-                                ),
+                                # Node(
+                                #     package = 'nmea_navsat_driver',
+                                #     executable = 'nmea_topic_driver',
+                                #     name = 'gps_navsat',
+                                #     remappings= [
+                                #         ('nmea_sentence', 'nmea')
+                                #     ]
+                                # ),
                                 Node(
                                     package='molab_hardware',
                                     executable='heading_sender.py',
                                     name='heading_sender',
                                     parameters=[{
                                         'heading': heading
-                                    }]
+                                    }],
+                                    
+                                ),
+                                Node(
+                                    package='molab_hardware',
+                                    executable='position_sender.py',
+                                    name='position_sender',
+                                    parameters=[{
+                                        'latitude': LaunchConfiguration('latitude'),
+                                        'longitude': LaunchConfiguration('longitude'),
+                                        'altitude': LaunchConfiguration('altitude')
+                                    }],
+                                    remappings=[('position','fix'),('velocity', 'vel')]
                                 )
+
                             ]
                         ),
                         GroupAction(
@@ -129,7 +149,7 @@ def generate_launch_description():
                                             executable='marine_radar_tracker',
                                             name='marine_radar_tracker',
                                             parameters=[{
-                                                'map_frame': 'molab/map'}],
+                                                'map_frame': 'molab/map_tide'}],
                                             remappings=[('radar_data', 'data')],
                                             respawn=True,
                                             respawn_delay=2.0
@@ -203,6 +223,17 @@ def generate_launch_description():
                     package='mru_transform',
                     executable='mru_transform_node',
                     name='mru_transform',
+                ),
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([
+                            FindPackageShare('mru_transform'),
+                            'launch',
+                            'tide_copier_launch.py'])
+                    ),
+                    launch_arguments={
+                        'name': namespace
+                    }.items()
                 ),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(

@@ -49,6 +49,14 @@
     map_frame: molab/map
     odom_frame: molab/odom
 
+/**/tide_copier:
+  ros__parameters:
+    input_map_frame: izzy/odom
+    input_map_tide_frame: izzy/map_tide
+    output_map_frame: molab/odom
+    output_map_tide_frame: molab/map_tide
+
+
 /**/radar:
   ros__parameters:
     halo_a:

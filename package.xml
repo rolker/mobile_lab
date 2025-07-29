@@ -14,6 +14,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
   <depend>axis_camera</depend>
+  <depend>geographic_msgs</depend>
   <depend>marine_ais_tools</depend>
   <depend>mru_transform</depend>
   <depend>nmea_navsat_driver</depend>
