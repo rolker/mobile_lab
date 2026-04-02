@@ -51,7 +51,7 @@ def generate_launch_description():
                      'config',
                      'axis_q62.yaml'
                   ]),
-                  'enalble_ptz': 'true',
+                  'enable_ptz': 'true',
                   'enable_ir': 'true',
                   'enable_wiper': 'true',
                   'enable_defog': 'true',
