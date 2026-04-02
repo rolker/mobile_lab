@@ -1,0 +1,11 @@
+<launch>
+    <arg name="rvizconfig" default="$(find molab_description)/config/molab.rviz" />
+
+    <include file="$(find molab_description)/launch/load.launch"/>
+    
+    <include file="$(find molab_description)/launch/publish_state.launch">
+      <arg name="namespace" value="molab"/>
+    </include>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find molab_description)/config/molab.rviz" required="true" />
+</launch>
